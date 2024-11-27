@@ -42,8 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     child: Image.asset(
                       'assets/light.png',
-                      width: 100, // Adjust width to fit your design
-                      height: 100,
+                      width: 150, // Adjust width to fit your design
+                      height: 150,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
-                      fontSize: 18,
+                      fontSize: 25,
                     ),
                   ),
                 ],
@@ -70,8 +70,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     child: Image.asset(
                       'assets/fan.png',
-                      width: 100, // Adjust width as needed
-                      height: 100,
+                      width: 150, // Adjust width as needed
+                      height: 150,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
-                      fontSize: 18,
+                      fontSize: 25,
                     ),
                   ),
                 ],

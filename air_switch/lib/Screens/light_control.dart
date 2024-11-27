@@ -29,37 +29,39 @@ class _LightControlState extends State<LightControl> {
           },
         ),
       ),
-      body: SingleChildScrollView( // Enable scrolling
-        child: Container(
-          color: Colors.white,
-          height: MediaQuery.of(context).size.height, // Make container fill the screen
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // Center vertically
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isLightOn = !isLightOn; // Toggle light state
-                    });
-                  },
-                  child: Image.asset(
-                    isLightOn ? 'assets/on.png' : 'assets/off.png',
-                    width: 150,
-                    height: 150,
+      body: Center( // Center content vertically and horizontally
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal, // Horizontal scroll
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center, // Center horizontally
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center, // Center vertically
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isLightOn = !isLightOn; // Toggle light state
+                      });
+                    },
+                    child: Image.asset(
+                      isLightOn ? 'assets/on.png' : 'assets/off.png',
+                      width: 150,
+                      height: 150,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20), // Space between image and text
-                Text(
-                  isLightOn ? 'Light is ON' : 'Light is OFF',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                  const SizedBox(height: 20), // Space between image and text
+                  Text(
+                    isLightOn ? 'Light is ON' : 'Light is OFF',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

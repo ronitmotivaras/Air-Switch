@@ -30,67 +30,68 @@ class _FanControlScreenState extends State<FanControlScreen> {
           },
         ),
       ),
-      body: SingleChildScrollView( // Enable scrolling
-        child: Container(
-          color: Colors.white,
-          height: MediaQuery.of(context).size.height, // Fill the screen height
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min, // Prevent column expansion
-              children: [
-                // Fan status text
-                Text(
-                  isFanOn ? 'Fan is ON' : 'Fan is OFF',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 30),
-
-                // Toggle Fan On/Off Image
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isFanOn = !isFanOn; // Toggle fan state
-                      if (!isFanOn) fanSpeed = 0; // Reset speed if fan is turned off
-                    });
-                  },
-                  child: Image.asset(
-                    isFanOn ? 'assets/on.png' : 'assets/off.png',
-                    width: 150,
-                    height: 150,
-                  ),
-                ),
-                const SizedBox(height: 30),
-
-                // Speed Control (only visible if the fan is on)
-                if (isFanOn) ...[
+      body: Center( // Center everything vertically and horizontally
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal, // Enable horizontal scrolling
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center, // Center horizontally
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min, // Prevent column expansion
+                mainAxisAlignment: MainAxisAlignment.center, // Center vertically
+                children: [
+                  // Fan status text
                   Text(
-                    'Speed: $fanSpeed',
+                    isFanOn ? 'Fan is ON' : 'Fan is OFF',
                     style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
+                  // Toggle Fan On/Off Image
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        fanSpeed = (fanSpeed + 1) % 6; // Cycle between 0 and 5
+                        isFanOn = !isFanOn; // Toggle fan state
+                        if (!isFanOn) fanSpeed = 0; // Reset speed if fan is turned off
                       });
                     },
                     child: Image.asset(
-                      'assets/btn.png', // Image for speed control
-                      width: 80,
-                      height: 80,
+                      isFanOn ? 'assets/on.png' : 'assets/off.png',
+                      width: 150,
+                      height: 150,
                     ),
                   ),
+                  const SizedBox(height: 30),
+                  // Speed Control (only visible if the fan is on)
+                  if (isFanOn) ...[
+                    Text(
+                      'Speed: $fanSpeed',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          fanSpeed = (fanSpeed + 1) % 6; // Cycle between 0 and 5
+                        });
+                      },
+                      child: Image.asset(
+                        'assets/fan_speed_button.png', // Image for speed control
+                        width: 80,
+                        height: 80,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
