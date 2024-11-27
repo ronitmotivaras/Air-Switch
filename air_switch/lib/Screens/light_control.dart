@@ -29,34 +29,37 @@ class _LightControlState extends State<LightControl> {
           },
         ),
       ),
-      body: Container(
-        color: Colors.white,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                isLightOn ? 'Light is ON' : 'Light is OFF',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+      body: SingleChildScrollView( // Enable scrolling
+        child: Container(
+          color: Colors.white,
+          height: MediaQuery.of(context).size.height, // Make container fill the screen
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center, // Center vertically
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isLightOn = !isLightOn; // Toggle light state
+                    });
+                  },
+                  child: Image.asset(
+                    isLightOn ? 'assets/on.png' : 'assets/off.png',
+                    width: 150,
+                    height: 150,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              IconButton(
-                icon: Icon(
-                  isLightOn ? Icons.lightbulb : Icons.lightbulb_outline,
-                  size: 100,
-                  color: isLightOn ? Colors.yellow[700] : Colors.grey,
+                const SizedBox(height: 20), // Space between image and text
+                Text(
+                  isLightOn ? 'Light is ON' : 'Light is OFF',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
-                onPressed: () {
-                  setState(() {
-                    isLightOn = !isLightOn; // Toggle light state
-                  });
-                },
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

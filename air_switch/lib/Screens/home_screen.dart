@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'fan_cotrol_screen.dart';
-import 'light_control.dart'; // Import LightControl screen
+import 'light_control.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,55 +22,63 @@ class _HomeScreenState extends State<HomeScreen> {
             fontSize: 24,
           ),
         ),
-        centerTitle: false,
         backgroundColor: Colors.purple,
       ),
-      body: Container(
-        color: Colors.white,
-        child: Center(
+      body: Center(
+        child: SingleChildScrollView(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // Light Icon Button
+              // Light Image Button
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.lightbulb_outline, size: 50, color: Colors.yellow[700]),
-                    onPressed: () {
+                  GestureDetector(
+                    onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const LightControl()), // Navigate to LightControl
+                        MaterialPageRoute(builder: (context) => const LightControl()),
                       );
                     },
+                    child: Image.asset(
+                      'assets/light.png',
+                      width: 100, // Adjust width to fit your design
+                      height: 100,
+                    ),
                   ),
+                  const SizedBox(height: 8),
                   const Text(
                     'Light',
                     style: TextStyle(
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.bold,
                       color: Colors.black,
                       fontSize: 18,
                     ),
                   ),
                 ],
               ),
-              // Fan Icon Button
+              // Fan Image Button
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.ac_unit, size: 50, color: Colors.blue[700]),
-                    onPressed: () {
+                  GestureDetector(
+                    onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const FanControlScreen()), // Navigate to FanControlScreen
+                        MaterialPageRoute(builder: (context) => const FanControlScreen()),
                       );
                     },
+                    child: Image.asset(
+                      'assets/fan.png',
+                      width: 100, // Adjust width as needed
+                      height: 100,
+                    ),
                   ),
+                  const SizedBox(height: 8),
                   const Text(
                     'Fan',
                     style: TextStyle(
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.bold,
                       color: Colors.black,
                       fontSize: 18,
                     ),
