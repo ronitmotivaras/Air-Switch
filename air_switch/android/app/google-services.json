@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "389429163098",
+    "project_id": "air-switch-96e32",
+    "storage_bucket": "air-switch-96e32.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:389429163098:android:d9f0019840072ba4a15463",
+        "android_client_info": {
+          "package_name": "com.example.air_switch"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNcxq9ZY-5Ob1HpyKZkT6PeZ1VZxBrYjY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
