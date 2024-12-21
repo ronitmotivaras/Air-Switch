@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http; // Import the HTTP package
 
 class LightControl extends StatefulWidget {
   const LightControl({super.key});
@@ -8,7 +9,39 @@ class LightControl extends StatefulWidget {
 }
 
 class _LightControlState extends State<LightControl> {
-  bool isLightOn = false; // State to track light status
+  bool isLightOn = false; // Track light status
+
+  // Function to toggle the light state via the API
+  Future<void> toggleLight() async {
+    String newState = isLightOn ? 'off' : 'on'; // Determine next state
+    String url = 'http://192.168.38.64/light?state=$newState'; // API endpoint
+
+    try {
+      final response = await http.get(Uri.parse(url)); // Send GET request
+
+      if (response.statusCode == 200) {
+        // Request successful; update the UI
+        setState(() {
+          isLightOn = !isLightOn; // Toggle the state
+        });
+      } else {
+        // Handle server errors
+        print('Error: ${response.statusCode}');
+        _showError('Failed to control the light. Try again.');
+      }
+    } catch (e) {
+      // Handle network errors
+      print('Error: $e');
+      _showError('Unable to connect. Check your network.');
+    }
+  }
+
+  // Function to show an error message in a SnackBar
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,44 +58,32 @@ class _LightControlState extends State<LightControl> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context); // Go back to the previous screen
+            Navigator.pop(context);
           },
         ),
       ),
-      body: Center( // Center content vertically and horizontally
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal, // Horizontal scroll
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center, // Center horizontally
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center, // Center vertically
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isLightOn = !isLightOn; // Toggle light state
-                      });
-                    },
-                    child: Image.asset(
-                      isLightOn ? 'assets/on.png' : 'assets/off.png',
-                      width: 150,
-                      height: 150,
-                    ),
-                  ),
-                  const SizedBox(height: 20), // Space between image and text
-                  Text(
-                    isLightOn ? 'Light is ON' : 'Light is OFF',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: toggleLight, // Call the API when tapped
+              child: Image.asset(
+                isLightOn ? 'assets/on.png' : 'assets/off.png',
+                width: 150,
+                height: 150,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              isLightOn ? 'Light is ON' : 'Light is OFF',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ],
         ),
       ),
     );

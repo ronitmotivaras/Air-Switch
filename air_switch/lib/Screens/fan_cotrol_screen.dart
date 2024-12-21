@@ -9,7 +9,7 @@ class FanControlScreen extends StatefulWidget {
 
 class _FanControlScreenState extends State<FanControlScreen> {
   bool isFanOn = false; // State to track fan on/off
-  int fanSpeed = 0; // Default fan speed (starts from 0)
+  int fanSpeed = 1; // Default fan speed (starts from 0)
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +55,7 @@ class _FanControlScreenState extends State<FanControlScreen> {
                     onTap: () {
                       setState(() {
                         isFanOn = !isFanOn; // Toggle fan state
-                        if (!isFanOn) fanSpeed = 0; // Reset speed if fan is turned off
+                        if (!isFanOn) fanSpeed = 1; // Reset speed if fan is turned off
                       });
                     },
                     child: Image.asset(
