@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // Import the HTTP package
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
 class LightControl extends StatefulWidget {
   const LightControl({super.key});
@@ -11,20 +12,26 @@ class LightControl extends StatefulWidget {
 class _LightControlState extends State<LightControl> {
   bool isLightOn = false; // Track light status
 
+  @override
+  void initState() {
+    super.initState();
+    _loadLightState(); // Load the saved light state on app start
+  }
+
   // Function to toggle the light state via the API
   Future<void> toggleLight() async {
     String newState = isLightOn ? 'off' : 'on'; // Determine next state
     String url = 'http://192.168.152.64/light?state=$newState';
 
-
     try {
       final response = await http.get(Uri.parse(url)); // Send GET request
 
       if (response.statusCode == 200) {
-        // Request successful; update the UI
+        // Request successful; update the UI and save state
         setState(() {
           isLightOn = !isLightOn; // Toggle the state
         });
+        _saveLightState(isLightOn); // Save the updated state
       } else {
         // Handle server errors
         print('Error: ${response.statusCode}');
@@ -42,6 +49,20 @@ class _LightControlState extends State<LightControl> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  // Function to save the light state in shared preferences
+  Future<void> _saveLightState(bool state) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLightOn', state); // Save the state of the light
+  }
+
+  // Function to load the saved light state from shared preferences
+  Future<void> _loadLightState() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isLightOn = prefs.getBool('isLightOn') ?? false; // Default to false if no saved state
+    });
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
 class FanControlScreen extends StatefulWidget {
   const FanControlScreen({super.key});
@@ -11,6 +12,12 @@ class FanControlScreen extends StatefulWidget {
 class _FanControlScreenState extends State<FanControlScreen> {
   bool isFanOn = false; // State to track fan on/off
   int fanSpeed = 1; // Default fan speed (1-5)
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFanState(); // Load saved fan state and speed when the app starts
+  }
 
   // Function to send fan speed to the server
   Future<void> updateFanSpeed(int speed) async {
@@ -34,6 +41,22 @@ class _FanControlScreenState extends State<FanControlScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  // Save the fan state and speed in shared preferences
+  Future<void> _saveFanState(bool isOn, int speed) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isFanOn', isOn);  // Save fan on/off state
+    await prefs.setInt('fanSpeed', speed); // Save fan speed
+  }
+
+  // Load the fan state and speed from shared preferences
+  Future<void> _loadFanState() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isFanOn = prefs.getBool('isFanOn') ?? false; // Load fan on/off state
+      fanSpeed = prefs.getInt('fanSpeed') ?? 1;  // Load fan speed, default to 1
+    });
   }
 
   @override
@@ -88,6 +111,8 @@ class _FanControlScreenState extends State<FanControlScreen> {
                       } else {
                         await updateFanSpeed(fanSpeed * 51); // Set fan to current speed
                       }
+                      // Save the updated state and speed
+                      await _saveFanState(isFanOn, fanSpeed);
                     },
                     child: Image.asset(
                       isFanOn ? 'assets/on.png' : 'assets/off.png',
@@ -113,6 +138,8 @@ class _FanControlScreenState extends State<FanControlScreen> {
                           fanSpeed = (fanSpeed % 5) + 1; // Cycle between 1 and 5
                         });
                         await updateFanSpeed(fanSpeed * 51); // Map speed to 0-255 range
+                        // Save the updated speed
+                        await _saveFanState(isFanOn, fanSpeed);
                       },
                       child: Image.asset(
                         'assets/fan_speed_button.png', // Image for speed control
