@@ -14,7 +14,8 @@ class _LightControlState extends State<LightControl> {
   // Function to toggle the light state via the API
   Future<void> toggleLight() async {
     String newState = isLightOn ? 'off' : 'on'; // Determine next state
-    String url = 'http://192.168.38.64/light?state=$newState'; // API endpoint
+    String url = 'http://192.168.152.64/light?state=$newState';
+
 
     try {
       final response = await http.get(Uri.parse(url)); // Send GET request

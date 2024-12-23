@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class FanControlScreen extends StatefulWidget {
   const FanControlScreen({super.key});
@@ -9,7 +10,31 @@ class FanControlScreen extends StatefulWidget {
 
 class _FanControlScreenState extends State<FanControlScreen> {
   bool isFanOn = false; // State to track fan on/off
-  int fanSpeed = 1; // Default fan speed (starts from 0)
+  int fanSpeed = 1; // Default fan speed (1-5)
+
+  // Function to send fan speed to the server
+  Future<void> updateFanSpeed(int speed) async {
+    String url = 'http://192.168.152.64/fan?speed=$speed'; // API endpoint
+    try {
+      final response = await http.get(Uri.parse(url)); // Send GET request
+      if (response.statusCode == 200) {
+        print('Fan speed updated to $speed');
+      } else {
+        print('Error: ${response.statusCode}');
+        _showError('Failed to update fan speed. Try again.');
+      }
+    } catch (e) {
+      print('Error: $e');
+      _showError('Unable to connect. Check your network.');
+    }
+  }
+
+  // Function to show error messages in a SnackBar
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,11 +77,17 @@ class _FanControlScreenState extends State<FanControlScreen> {
                   const SizedBox(height: 30),
                   // Toggle Fan On/Off Image
                   GestureDetector(
-                    onTap: () {
+                    onTap: () async {
                       setState(() {
                         isFanOn = !isFanOn; // Toggle fan state
-                        if (!isFanOn) fanSpeed = 1; // Reset speed if fan is turned off
                       });
+                      // Update fan state on the server
+                      if (!isFanOn) {
+                        fanSpeed = 1; // Reset speed if fan is turned off
+                        await updateFanSpeed(0); // Send speed 0 to turn off the fan
+                      } else {
+                        await updateFanSpeed(fanSpeed * 51); // Set fan to current speed
+                      }
                     },
                     child: Image.asset(
                       isFanOn ? 'assets/on.png' : 'assets/off.png',
@@ -77,10 +108,11 @@ class _FanControlScreenState extends State<FanControlScreen> {
                     ),
                     const SizedBox(height: 20),
                     GestureDetector(
-                      onTap: () {
+                      onTap: () async {
                         setState(() {
-                          fanSpeed = (fanSpeed + 1) % 6; // Cycle between 0 and 5
+                          fanSpeed = (fanSpeed % 5) + 1; // Cycle between 1 and 5
                         });
+                        await updateFanSpeed(fanSpeed * 51); // Map speed to 0-255 range
                       },
                       child: Image.asset(
                         'assets/fan_speed_button.png', // Image for speed control
