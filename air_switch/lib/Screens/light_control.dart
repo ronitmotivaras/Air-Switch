@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // Import the HTTP package
-import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt; // Import speech to text package
 
 class LightControl extends StatefulWidget {
   const LightControl({super.key});
@@ -11,6 +12,9 @@ class LightControl extends StatefulWidget {
 
 class _LightControlState extends State<LightControl> {
   bool isLightOn = false; // Track light status
+  stt.SpeechToText _speech = stt.SpeechToText(); // Speech-to-text instance
+  bool _isListening = false; // Track whether voice recognition is active
+  String _spokenText = ''; // The recognized spoken text
 
   @override
   void initState() {
@@ -18,10 +22,17 @@ class _LightControlState extends State<LightControl> {
     _loadLightState(); // Load the saved light state on app start
   }
 
+  // Function to load the saved light state from shared preferences
+  Future<void> _loadLightState() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isLightOn = prefs.getBool('isLightOn') ?? false; // Default to false if no saved state
+    });
+  }
+
   // Function to toggle the light state via the API
-  Future<void> toggleLight() async {
-    String newState = isLightOn ? 'off' : 'on'; // Determine next state
-    String url = 'http://192.168.152.64/light?state=$newState';
+  Future<void> toggleLight(String state) async {
+    String url = 'http://192.168.152.64/light?state=$state';
 
     try {
       final response = await http.get(Uri.parse(url)); // Send GET request
@@ -29,7 +40,7 @@ class _LightControlState extends State<LightControl> {
       if (response.statusCode == 200) {
         // Request successful; update the UI and save state
         setState(() {
-          isLightOn = !isLightOn; // Toggle the state
+          isLightOn = (state == 'on');
         });
         _saveLightState(isLightOn); // Save the updated state
       } else {
@@ -57,12 +68,50 @@ class _LightControlState extends State<LightControl> {
     await prefs.setBool('isLightOn', state); // Save the state of the light
   }
 
-  // Function to load the saved light state from shared preferences
-  Future<void> _loadLightState() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      isLightOn = prefs.getBool('isLightOn') ?? false; // Default to false if no saved state
-    });
+  // Function to start or stop listening for voice input
+  void _toggleListening() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize();
+      if (available) {
+        setState(() {
+          _isListening = true;
+        });
+        _speech.listen(onResult: (result) {
+          setState(() {
+            _spokenText = result.recognizedWords;
+          });
+          _processVoiceCommand(_spokenText); // Process the spoken text
+        });
+      } else {
+        print("Speech recognition is not available.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Speech recognition not available')),
+        );
+      }
+    } else {
+      _speech.stop();
+      setState(() {
+        _isListening = false;
+      });
+    }
+  }
+
+  // Process the voice command to turn the light on or off
+  void _processVoiceCommand(String command) {
+    print("You said: $command"); // Debugging line
+
+    // Make the command case-insensitive
+    String lowerCommand = command.toLowerCase();
+
+    if (lowerCommand.contains('turn on the light') && !isLightOn) {
+      toggleLight('on'); // Turn on the light
+    } else if (lowerCommand.contains('turn off the light') && isLightOn) {
+      toggleLight('off'); // Turn off the light
+    } else if (lowerCommand.contains('turn on the light') && isLightOn) {
+      _showError('Light is already ON'); // Show message if light is already on
+    } else if (lowerCommand.contains('turn off the light') && !isLightOn) {
+      _showError('Light is already OFF'); // Show message if light is already off
+    }
   }
 
   @override
@@ -88,13 +137,11 @@ class _LightControlState extends State<LightControl> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GestureDetector(
-              onTap: toggleLight, // Call the API when tapped
-              child: Image.asset(
-                isLightOn ? 'assets/on.png' : 'assets/off.png',
-                width: 150,
-                height: 150,
-              ),
+            // Display light status with image
+            Image.asset(
+              isLightOn ? 'assets/on.png' : 'assets/off.png',
+              width: 150,
+              height: 150,
             ),
             const SizedBox(height: 20),
             Text(
@@ -105,6 +152,24 @@ class _LightControlState extends State<LightControl> {
                 color: Colors.black,
               ),
             ),
+            const SizedBox(height: 20),
+            // Add voice command button
+            IconButton(
+              icon: Icon(
+                _isListening ? Icons.mic : Icons.mic_none,
+                color: Colors.purple,
+                size: 40,
+              ),
+              onPressed: _toggleListening, // Start or stop listening
+            ),
+            if (_spokenText.isNotEmpty)
+              Text(
+                'You said: $_spokenText',
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
+              ),
           ],
         ),
       ),
