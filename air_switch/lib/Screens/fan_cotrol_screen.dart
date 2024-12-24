@@ -107,18 +107,26 @@ class _FanControlScreenState extends State<FanControlScreen> {
       });
       updateFanSpeed(0); // Turn off the fan by setting speed to 0
       _saveFanState(isFanOn, fanSpeed);
-    } else if (command.contains('increase fan speed') && isFanOn && fanSpeed < 5) {
-      setState(() {
-        fanSpeed++; // Increase fan speed (up to 5)
-      });
-      updateFanSpeed(fanSpeed * 80); // Update fan speed
-      _saveFanState(isFanOn, fanSpeed);
-    } else if (command.contains('decrease fan speed') && isFanOn && fanSpeed > 1) {
-      setState(() {
-        fanSpeed--; // Decrease fan speed (down to 1)
-      });
-      updateFanSpeed(fanSpeed * 80); // Update fan speed
-      _saveFanState(isFanOn, fanSpeed);
+    } else if (command.contains('increase fan speed') && isFanOn) {
+      if (fanSpeed < 5) {
+        setState(() {
+          fanSpeed++; // Increase fan speed (up to 5)
+        });
+        updateFanSpeed(fanSpeed * 80); // Update fan speed
+        _saveFanState(isFanOn, fanSpeed);
+      } else {
+        _showError('Fan speed is already at the maximum!'); // Show warning if max speed
+      }
+    } else if (command.contains('decrease fan speed') && isFanOn) {
+      if (fanSpeed > 1) {
+        setState(() {
+          fanSpeed--; // Decrease fan speed (down to 1)
+        });
+        updateFanSpeed(fanSpeed * 80); // Update fan speed
+        _saveFanState(isFanOn, fanSpeed);
+      } else {
+        _showError('Fan speed is already at the minimum!'); // Show warning if min speed
+      }
     }
   }
 
@@ -206,6 +214,8 @@ class _FanControlScreenState extends State<FanControlScreen> {
                               });
                               await updateFanSpeed(fanSpeed * 80); // Update server
                               await _saveFanState(isFanOn, fanSpeed); // Save state
+                            } else {
+                              _showError('Fan speed is already at the minimum!');
                             }
                           },
                           child: Image.asset(
@@ -217,11 +227,15 @@ class _FanControlScreenState extends State<FanControlScreen> {
                         const SizedBox(width: 20),
                         GestureDetector(
                           onTap: () async {
-                            setState(() {
-                              fanSpeed = (fanSpeed % 5) + 1; // Cycle between 1 and 5
-                            });
-                            await updateFanSpeed(fanSpeed * 80); // Update server
-                            await _saveFanState(isFanOn, fanSpeed); // Save state
+                            if (fanSpeed < 5) {
+                              setState(() {
+                                fanSpeed++; // Increase speed
+                              });
+                              await updateFanSpeed(fanSpeed * 80); // Update server
+                              await _saveFanState(isFanOn, fanSpeed); // Save state
+                            } else {
+                              _showError('Fan speed is already at the maximum!');
+                            }
                           },
                           child: Image.asset(
                             'assets/plus.png', // Image for speed control

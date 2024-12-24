@@ -49,10 +49,10 @@ dev_dependencies:
 flutter_icons:
   android: true  # Set to true to generate icons for Android
   ios: true      # Set to true to generate icons for iOS
-  image_path: "assets/icon/app_icon.png"  # Path to your app icon image
+  image_path: "assets/icon.png"  # Path to your app icon image
   web:
     generate: true
-    image_path: "assets/icon/app_icon.png"
+    image_path: "assets/webicon.png"
     background_color: "#hexcode"
     theme_color: "#hexcode"
 
