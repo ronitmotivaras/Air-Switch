@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
-import 'package:speech_to_text/speech_to_text.dart' as stt; // Import speech to text
 
 class FanControlScreen extends StatefulWidget {
   const FanControlScreen({super.key});
@@ -11,25 +9,67 @@ class FanControlScreen extends StatefulWidget {
 }
 
 class _FanControlScreenState extends State<FanControlScreen> {
-  bool isFanOn = false; // State to track fan on/off
+  bool isFanOn = false; // Track fan status
   int fanSpeed = 1; // Default fan speed (1-5)
-  stt.SpeechToText _speech = stt.SpeechToText(); // Speech-to-text instance
-  bool _isListening = false; // Track if the app is currently listening to voice input
-  String _spokenText = ''; // The recognized speech
 
-  @override
-  void initState() {
-    super.initState();
-    _loadFanState(); // Load saved fan state and speed when the app starts
+  // Map speed level to PWM value
+  int getPwmValue(int speed) {
+    switch (speed) {
+      case 1:
+        return 80;
+      case 2:
+        return 120;
+      case 3:
+        return 180;
+      case 4:
+        return 220;
+      case 5:
+        return 255;
+      default:
+        return 0; // Default to 0 if invalid speed
+    }
+  }
+
+  // Function to check the fan status from the server
+  Future<void> checkFanStatus() async {
+    String url = 'http://192.168.152.64/status/fan'; // URL to check fan status
+
+    try {
+      final response = await http.get(Uri.parse(url)); // Send GET request
+
+      if (response.statusCode == 200) {
+        String responseBody = response.body.toLowerCase();
+        setState(() {
+          if (responseBody.contains("on")) {
+            isFanOn = true;
+            // Extract speed from response and map it to 1-5
+            int extractedSpeed = int.parse(RegExp(r'\d+').stringMatch(responseBody) ?? '0');
+            fanSpeed = (extractedSpeed >= 80 && extractedSpeed <= 255)
+                ? (extractedSpeed - 60) ~/ 40
+                : 1;
+          } else {
+            isFanOn = false;
+            fanSpeed = 1; // Reset speed if fan is off
+          }
+        });
+      } else {
+        print('Error: ${response.statusCode}');
+        _showError('Failed to get fan status. Try again.');
+      }
+    } catch (e) {
+      print('Error: $e');
+      _showError('Unable to connect. Check your network.');
+    }
   }
 
   // Function to send fan speed to the server
   Future<void> updateFanSpeed(int speed) async {
-    String url = 'http://192.168.152.64/fan?speed=$speed'; // API endpoint
+    int pwmValue = getPwmValue(speed);
+    String url = 'http://192.168.152.64/fan?speed=$pwmValue'; // API endpoint
     try {
       final response = await http.get(Uri.parse(url)); // Send GET request
       if (response.statusCode == 200) {
-        print('Fan speed updated to $speed');
+        print('Fan speed updated to $speed (PWM: $pwmValue)');
       } else {
         print('Error: ${response.statusCode}');
         _showError('Failed to update fan speed. Try again.');
@@ -47,99 +87,10 @@ class _FanControlScreenState extends State<FanControlScreen> {
     );
   }
 
-  // Save the fan state and speed in shared preferences
-  Future<void> _saveFanState(bool isOn, int speed) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isFanOn', isOn);  // Save fan on/off state
-    await prefs.setInt('fanSpeed', speed); // Save fan speed
-  }
-
-  // Load the fan state and speed from shared preferences
-  Future<void> _loadFanState() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      isFanOn = prefs.getBool('isFanOn') ?? false; // Load fan on/off state
-      fanSpeed = prefs.getInt('fanSpeed') ?? 1;  // Load fan speed, default to 1
-    });
-  }
-
-  // Function to start or stop listening for voice input
-  void _toggleListening() async {
-    if (!_isListening) {
-      bool available = await _speech.initialize();
-      if (available) {
-        setState(() {
-          _isListening = true;
-        });
-        _speech.listen(onResult: (result) {
-          setState(() {
-            _spokenText = result.recognizedWords;
-          });
-          _processVoiceCommand(_spokenText); // Process the spoken text
-        });
-      } else {
-        print("Speech recognition is not available.");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Speech recognition not available')),
-        );
-      }
-    } else {
-      _speech.stop();
-      setState(() {
-        _isListening = false;
-      });
-    }
-  }
-
-  // Process the voice command to turn the fan on or off and adjust the speed
-  void _processVoiceCommand(String command) {
-    print("You said: $command"); // Debugging line
-
-    // Check if the user says "turn on the fan" when it's already on
-    if (command.contains('turn on the fan') && !isFanOn) {
-      setState(() {
-        isFanOn = true;
-      });
-      updateFanSpeed(fanSpeed * 80); // Set fan to current speed
-      _saveFanState(isFanOn, fanSpeed);
-    } else if (command.contains('turn on the fan') && isFanOn) {
-      _showError('Fan is already ON'); // Show message if fan is already on
-
-      // Check if the user says "turn off the fan" when it's already off
-    } else if (command.contains('turn off the fan') && isFanOn) {
-      setState(() {
-        isFanOn = false;
-        fanSpeed = 1; // Reset speed when turning off
-      });
-      updateFanSpeed(0); // Turn off the fan by setting speed to 0
-      _saveFanState(isFanOn, fanSpeed);
-    } else if (command.contains('turn off the fan') && !isFanOn) {
-      _showError('Fan is already OFF'); // Show message if fan is already off
-
-      // Handle speed change commands only when the fan is on
-    } else if (command.contains('increase fan speed') && isFanOn) {
-      if (fanSpeed < 5) {
-        setState(() {
-          fanSpeed++; // Increase fan speed (up to 5)
-        });
-        updateFanSpeed(fanSpeed * 80); // Update fan speed
-        _saveFanState(isFanOn, fanSpeed);
-      } else {
-        _showError('Fan speed is already at the maximum!'); // Show warning if max speed
-      }
-    } else if (command.contains('decrease fan speed') && isFanOn) {
-      if (fanSpeed > 1) {
-        setState(() {
-          fanSpeed--; // Decrease fan speed (down to 1)
-        });
-        updateFanSpeed(fanSpeed * 80); // Update fan speed
-        _saveFanState(isFanOn, fanSpeed);
-      } else {
-        _showError('Fan speed is already at the minimum!'); // Show warning if min speed
-      }
-    } else if ((command.contains('increase fan speed') || command.contains('decrease fan speed')) && !isFanOn) {
-      _showError('The fan is off. Please turn it on first.'); // Show warning if fan is off
-    }
+  @override
+  void initState() {
+    super.initState();
+    checkFanStatus(); // Check the fan status when the screen is loaded
   }
 
   @override
@@ -161,11 +112,11 @@ class _FanControlScreenState extends State<FanControlScreen> {
           },
         ),
       ),
-      body: Center( // Center everything vertically and horizontally
+      body: Center(
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal, // Enable horizontal scrolling
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center, // Center horizontally
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Column(
                 mainAxisSize: MainAxisSize.min, // Prevent column expansion
@@ -192,10 +143,8 @@ class _FanControlScreenState extends State<FanControlScreen> {
                         fanSpeed = 1; // Reset speed if fan is turned off
                         await updateFanSpeed(0); // Send speed 0 to turn off the fan
                       } else {
-                        await updateFanSpeed(fanSpeed * 80); // Set fan to current speed
+                        await updateFanSpeed(fanSpeed); // Set fan to current speed
                       }
-                      // Save the updated state and speed
-                      await _saveFanState(isFanOn, fanSpeed);
                     },
                     child: Image.asset(
                       isFanOn ? 'assets/on.png' : 'assets/off.png',
@@ -224,8 +173,7 @@ class _FanControlScreenState extends State<FanControlScreen> {
                               setState(() {
                                 fanSpeed--; // Decrease speed
                               });
-                              await updateFanSpeed(fanSpeed * 80); // Update server
-                              await _saveFanState(isFanOn, fanSpeed); // Save state
+                              await updateFanSpeed(fanSpeed); // Update server
                             } else {
                               _showError('Fan speed is already at the minimum!');
                             }
@@ -243,14 +191,13 @@ class _FanControlScreenState extends State<FanControlScreen> {
                               setState(() {
                                 fanSpeed++; // Increase speed
                               });
-                              await updateFanSpeed(fanSpeed * 80); // Update server
-                              await _saveFanState(isFanOn, fanSpeed); // Save state
+                              await updateFanSpeed(fanSpeed); // Update server
                             } else {
                               _showError('Fan speed is already at the maximum!');
                             }
                           },
                           child: Image.asset(
-                            'assets/plus.png', // Image for speed control
+                            'assets/plus.png', // Image for increase button
                             width: 60,
                             height: 60,
                           ),
@@ -259,23 +206,6 @@ class _FanControlScreenState extends State<FanControlScreen> {
                     ),
                   ],
                   const SizedBox(height: 20),
-                  // Voice Command Button
-                  IconButton(
-                    icon: Icon(
-                      _isListening ? Icons.mic : Icons.mic_none,
-                      color: Colors.purple,
-                      size: 40,
-                    ),
-                    onPressed: _toggleListening, // Start or stop listening
-                  ),
-                  if (_spokenText.isNotEmpty)
-                    Text(
-                      'You said: $_spokenText',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: Colors.black,
-                      ),
-                    ),
                 ],
               ),
             ],
