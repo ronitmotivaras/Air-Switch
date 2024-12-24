@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
+import 'package:speech_to_text/speech_to_text.dart' as stt; // Import speech to text
 
 class FanControlScreen extends StatefulWidget {
   const FanControlScreen({super.key});
@@ -12,6 +13,9 @@ class FanControlScreen extends StatefulWidget {
 class _FanControlScreenState extends State<FanControlScreen> {
   bool isFanOn = false; // State to track fan on/off
   int fanSpeed = 1; // Default fan speed (1-5)
+  stt.SpeechToText _speech = stt.SpeechToText(); // Speech-to-text instance
+  bool _isListening = false; // Track if the app is currently listening to voice input
+  String _spokenText = ''; // The recognized speech
 
   @override
   void initState() {
@@ -57,6 +61,65 @@ class _FanControlScreenState extends State<FanControlScreen> {
       isFanOn = prefs.getBool('isFanOn') ?? false; // Load fan on/off state
       fanSpeed = prefs.getInt('fanSpeed') ?? 1;  // Load fan speed, default to 1
     });
+  }
+
+  // Function to start or stop listening for voice input
+  void _toggleListening() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize();
+      if (available) {
+        setState(() {
+          _isListening = true;
+        });
+        _speech.listen(onResult: (result) {
+          setState(() {
+            _spokenText = result.recognizedWords;
+          });
+          _processVoiceCommand(_spokenText); // Process the spoken text
+        });
+      } else {
+        print("Speech recognition is not available.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Speech recognition not available')),
+        );
+      }
+    } else {
+      _speech.stop();
+      setState(() {
+        _isListening = false;
+      });
+    }
+  }
+
+  // Process the voice command to turn the fan on or off and adjust the speed
+  void _processVoiceCommand(String command) {
+    print("You said: $command"); // Debugging line
+    if (command.contains('turn on the fan') && !isFanOn) {
+      setState(() {
+        isFanOn = true;
+      });
+      updateFanSpeed(fanSpeed * 80); // Set fan to current speed
+      _saveFanState(isFanOn, fanSpeed);
+    } else if (command.contains('turn off the fan') && isFanOn) {
+      setState(() {
+        isFanOn = false;
+        fanSpeed = 1; // Reset speed when turning off
+      });
+      updateFanSpeed(0); // Turn off the fan by setting speed to 0
+      _saveFanState(isFanOn, fanSpeed);
+    } else if (command.contains('increase fan speed') && isFanOn && fanSpeed < 5) {
+      setState(() {
+        fanSpeed++; // Increase fan speed (up to 5)
+      });
+      updateFanSpeed(fanSpeed * 80); // Update fan speed
+      _saveFanState(isFanOn, fanSpeed);
+    } else if (command.contains('decrease fan speed') && isFanOn && fanSpeed > 1) {
+      setState(() {
+        fanSpeed--; // Decrease fan speed (down to 1)
+      });
+      updateFanSpeed(fanSpeed * 80); // Update fan speed
+      _saveFanState(isFanOn, fanSpeed);
+    }
   }
 
   @override
@@ -109,7 +172,7 @@ class _FanControlScreenState extends State<FanControlScreen> {
                         fanSpeed = 1; // Reset speed if fan is turned off
                         await updateFanSpeed(0); // Send speed 0 to turn off the fan
                       } else {
-                        await updateFanSpeed(fanSpeed * 51); // Set fan to current speed
+                        await updateFanSpeed(fanSpeed * 80); // Set fan to current speed
                       }
                       // Save the updated state and speed
                       await _saveFanState(isFanOn, fanSpeed);
@@ -137,7 +200,7 @@ class _FanControlScreenState extends State<FanControlScreen> {
                         setState(() {
                           fanSpeed = (fanSpeed % 5) + 1; // Cycle between 1 and 5
                         });
-                        await updateFanSpeed(fanSpeed * 51); // Map speed to 0-255 range
+                        await updateFanSpeed(fanSpeed * 80); // Map speed to 0-255 range
                         // Save the updated speed
                         await _saveFanState(isFanOn, fanSpeed);
                       },
@@ -148,6 +211,23 @@ class _FanControlScreenState extends State<FanControlScreen> {
                       ),
                     ),
                   ],
+                  // Voice Command Button
+                  IconButton(
+                    icon: Icon(
+                      _isListening ? Icons.mic : Icons.mic_none,
+                      color: Colors.purple,
+                      size: 40,
+                    ),
+                    onPressed: _toggleListening, // Start or stop listening
+                  ),
+                  if (_spokenText.isNotEmpty)
+                    Text(
+                      'You said: $_spokenText',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.black,
+                      ),
+                    ),
                 ],
               ),
             ],
