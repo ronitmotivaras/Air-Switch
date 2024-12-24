@@ -195,22 +195,44 @@ class _FanControlScreenState extends State<FanControlScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    GestureDetector(
-                      onTap: () async {
-                        setState(() {
-                          fanSpeed = (fanSpeed % 5) + 1; // Cycle between 1 and 5
-                        });
-                        await updateFanSpeed(fanSpeed * 80); // Map speed to 0-255 range
-                        // Save the updated speed
-                        await _saveFanState(isFanOn, fanSpeed);
-                      },
-                      child: Image.asset(
-                        'assets/fan_speed_button.png', // Image for speed control
-                        width: 80,
-                        height: 80,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () async {
+                            if (fanSpeed > 1) {
+                              setState(() {
+                                fanSpeed--; // Decrease speed
+                              });
+                              await updateFanSpeed(fanSpeed * 80); // Update server
+                              await _saveFanState(isFanOn, fanSpeed); // Save state
+                            }
+                          },
+                          child: Image.asset(
+                            'assets/minus.png', // Image for decrease button
+                            width: 60,
+                            height: 60,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        GestureDetector(
+                          onTap: () async {
+                            setState(() {
+                              fanSpeed = (fanSpeed % 5) + 1; // Cycle between 1 and 5
+                            });
+                            await updateFanSpeed(fanSpeed * 80); // Update server
+                            await _saveFanState(isFanOn, fanSpeed); // Save state
+                          },
+                          child: Image.asset(
+                            'assets/plus.png', // Image for speed control
+                            width: 60,
+                            height: 60,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
+                  const SizedBox(height: 20),
                   // Voice Command Button
                   IconButton(
                     icon: Icon(
