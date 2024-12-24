@@ -94,12 +94,18 @@ class _FanControlScreenState extends State<FanControlScreen> {
   // Process the voice command to turn the fan on or off and adjust the speed
   void _processVoiceCommand(String command) {
     print("You said: $command"); // Debugging line
+
+    // Check if the user says "turn on the fan" when it's already on
     if (command.contains('turn on the fan') && !isFanOn) {
       setState(() {
         isFanOn = true;
       });
       updateFanSpeed(fanSpeed * 80); // Set fan to current speed
       _saveFanState(isFanOn, fanSpeed);
+    } else if (command.contains('turn on the fan') && isFanOn) {
+      _showError('Fan is already ON'); // Show message if fan is already on
+
+      // Check if the user says "turn off the fan" when it's already off
     } else if (command.contains('turn off the fan') && isFanOn) {
       setState(() {
         isFanOn = false;
@@ -107,6 +113,10 @@ class _FanControlScreenState extends State<FanControlScreen> {
       });
       updateFanSpeed(0); // Turn off the fan by setting speed to 0
       _saveFanState(isFanOn, fanSpeed);
+    } else if (command.contains('turn off the fan') && !isFanOn) {
+      _showError('Fan is already OFF'); // Show message if fan is already off
+
+      // Handle speed change commands only when the fan is on
     } else if (command.contains('increase fan speed') && isFanOn) {
       if (fanSpeed < 5) {
         setState(() {
@@ -127,6 +137,8 @@ class _FanControlScreenState extends State<FanControlScreen> {
       } else {
         _showError('Fan speed is already at the minimum!'); // Show warning if min speed
       }
+    } else if ((command.contains('increase fan speed') || command.contains('decrease fan speed')) && !isFanOn) {
+      _showError('The fan is off. Please turn it on first.'); // Show warning if fan is off
     }
   }
 
