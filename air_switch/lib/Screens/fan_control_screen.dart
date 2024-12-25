@@ -30,26 +30,30 @@ class _FanControlScreenState extends State<FanControlScreen> {
     }
   }
 
-  // Function to check the fan status from the server
   Future<void> checkFanStatus() async {
-    String url = 'http://192.168.152.64/status/fan'; // URL to check fan status
+    String url = 'http://192.168.152.64/status/fan';
 
     try {
-      final response = await http.get(Uri.parse(url)); // Send GET request
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         String responseBody = response.body.toLowerCase();
         setState(() {
           if (responseBody.contains("on")) {
             isFanOn = true;
-            // Extract speed from response and map it to 1-5
-            int extractedSpeed = int.parse(RegExp(r'\d+').stringMatch(responseBody) ?? '0');
-            fanSpeed = (extractedSpeed >= 80 && extractedSpeed <= 255)
-                ? (extractedSpeed - 60) ~/ 40
-                : 1;
+
+            // Extract the PWM value from the response
+            int extractedPwmValue = int.parse(RegExp(r'\d+').stringMatch(responseBody) ?? '0');
+
+            // Map the extracted PWM value to the corresponding speed (0 to 5)
+            if (extractedPwmValue >= 0 && extractedPwmValue <= 255) {
+              fanSpeed = _mapPwmToSpeed(extractedPwmValue);
+            } else {
+              fanSpeed = 1; // Default to speed 1 if the extracted value is invalid
+            }
           } else {
             isFanOn = false;
-            fanSpeed = 1; // Reset speed if fan is off
+            fanSpeed = 1; // Reset to speed 1 if the fan is off
           }
         });
       } else {
@@ -61,6 +65,26 @@ class _FanControlScreenState extends State<FanControlScreen> {
       _showError('Unable to connect. Check your network.');
     }
   }
+
+// Helper function to map PWM value to speed (0 to 5)
+  int _mapPwmToSpeed(int pwmValue) {
+    if (pwmValue >= 0 && pwmValue < 20) {
+      return 0; // Fan is off
+    } else if (pwmValue >= 80 && pwmValue < 120) {
+      return 1;
+    } else if (pwmValue >= 120 && pwmValue < 180) {
+      return 2;
+    } else if (pwmValue >= 180 && pwmValue < 220) {
+      return 3;
+    } else if (pwmValue >= 220 && pwmValue < 255) {
+      return 4;
+    } else if (pwmValue == 255) {
+      return 5; // Maximum speed
+    }
+    return 1; // Default to speed 1 if invalid value
+  }
+
+
 
   // Function to send fan speed to the server
   Future<void> updateFanSpeed(int speed) async {

@@ -155,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           // Add the mic button to the stack (it will be positioned at the bottom right)
-          // const MicButton(),  // This places the mic button at the bottom right
+          const MicButton(),  // This places the mic button at the bottom right
         ],
       ),
     );
