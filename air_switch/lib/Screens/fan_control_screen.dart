@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'mic_screen.dart'; // Import the MicButton widget
 
 class FanControlScreen extends StatefulWidget {
   const FanControlScreen({super.key});
@@ -66,7 +67,7 @@ class _FanControlScreenState extends State<FanControlScreen> {
     }
   }
 
-// Helper function to map PWM value to speed (0 to 5)
+  // Helper function to map PWM value to speed (0 to 5)
   int _mapPwmToSpeed(int pwmValue) {
     if (pwmValue >= 0 && pwmValue < 20) {
       return 0; // Fan is off
@@ -83,8 +84,6 @@ class _FanControlScreenState extends State<FanControlScreen> {
     }
     return 1; // Default to speed 1 if invalid value
   }
-
-
 
   // Function to send fan speed to the server
   Future<void> updateFanSpeed(int speed) async {
@@ -136,17 +135,14 @@ class _FanControlScreenState extends State<FanControlScreen> {
           },
         ),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal, // Enable horizontal scrolling
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.min, // Prevent column expansion
-                mainAxisAlignment: MainAxisAlignment.center, // Center vertically
+      body: Stack(
+        children: [
+          // Main content
+          Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Fan status text
                   Text(
                     isFanOn ? 'Fan is ON' : 'Fan is OFF',
                     style: const TextStyle(
@@ -156,13 +152,11 @@ class _FanControlScreenState extends State<FanControlScreen> {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  // Toggle Fan On/Off Image
                   GestureDetector(
                     onTap: () async {
                       setState(() {
                         isFanOn = !isFanOn; // Toggle fan state
                       });
-                      // Update fan state on the server
                       if (!isFanOn) {
                         fanSpeed = 1; // Reset speed if fan is turned off
                         await updateFanSpeed(0); // Send speed 0 to turn off the fan
@@ -177,7 +171,6 @@ class _FanControlScreenState extends State<FanControlScreen> {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  // Speed Control (only visible if the fan is on)
                   if (isFanOn) ...[
                     Text(
                       'Speed: $fanSpeed',
@@ -195,15 +188,15 @@ class _FanControlScreenState extends State<FanControlScreen> {
                           onTap: () async {
                             if (fanSpeed > 1) {
                               setState(() {
-                                fanSpeed--; // Decrease speed
+                                fanSpeed--;
                               });
-                              await updateFanSpeed(fanSpeed); // Update server
+                              await updateFanSpeed(fanSpeed);
                             } else {
                               _showError('Fan speed is already at the minimum!');
                             }
                           },
                           child: Image.asset(
-                            'assets/minus.png', // Image for decrease button
+                            'assets/minus.png',
                             width: 60,
                             height: 60,
                           ),
@@ -213,15 +206,15 @@ class _FanControlScreenState extends State<FanControlScreen> {
                           onTap: () async {
                             if (fanSpeed < 5) {
                               setState(() {
-                                fanSpeed++; // Increase speed
+                                fanSpeed++;
                               });
-                              await updateFanSpeed(fanSpeed); // Update server
+                              await updateFanSpeed(fanSpeed);
                             } else {
                               _showError('Fan speed is already at the maximum!');
                             }
                           },
                           child: Image.asset(
-                            'assets/plus.png', // Image for increase button
+                            'assets/plus.png',
                             width: 60,
                             height: 60,
                           ),
@@ -229,12 +222,17 @@ class _FanControlScreenState extends State<FanControlScreen> {
                       ],
                     ),
                   ],
-                  const SizedBox(height: 20),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
+          // Mic button positioned at the bottom-right corner
+          const Positioned(
+            bottom: 20,
+            right: 20,
+            child: MicButton(),  // Place MicButton at the bottom-right
+          ),
+        ],
       ),
     );
   }

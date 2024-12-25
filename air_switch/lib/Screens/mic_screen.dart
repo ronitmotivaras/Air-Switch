@@ -75,12 +75,26 @@ class _MicButtonState extends State<MicButton> {
         setState(() {
           _isListening = true;
         });
-        _speech.listen(onResult: (result) {
-          setState(() {
-            _spokenText = result.recognizedWords;
-          });
-          _processVoiceCommand(_spokenText); // Process the spoken text
-        });
+        _speech.listen(
+          onResult: (result) {
+            setState(() {
+              _spokenText = result.recognizedWords;
+            });
+            _processVoiceCommand(_spokenText); // Process the spoken text
+
+            // Automatically stop listening when the speech result is final
+            if (result.hasConfidenceRating && result.confidence >= 0.5) {
+              _speech.stop(); // Stop listening when the result is confident
+              setState(() {
+                _isListening = false; // Update state
+              });
+            }
+          },
+          listenFor: Duration(seconds: 10), // You can adjust the duration as needed
+          pauseFor: Duration(seconds: 3), // Time before it stops listening after silence
+          partialResults: false, // Do not display partial results while speaking
+          onSoundLevelChange: (double level) => print("Sound level: $level"), // Optional: to track the microphone input
+        );
       } else {
         _showError('Speech recognition not available');
       }
@@ -92,6 +106,7 @@ class _MicButtonState extends State<MicButton> {
     }
   }
 
+  // Update the light state (for future implementation if needed)
   Future<void> _updateLightState(bool turnOn) async {
     String url = 'http://192.168.152.64/light'; // API endpoint for light
     String state = turnOn ? 'on' : 'off'; // Set state to on or off
@@ -111,7 +126,7 @@ class _MicButtonState extends State<MicButton> {
     }
   }
 
-
+  // Process the voice command and perform corresponding actions
   void _processVoiceCommand(String command) {
     if (command.contains('turn on the fan') && !isFanOn) {
       _updateFanState(true, fanSpeed);

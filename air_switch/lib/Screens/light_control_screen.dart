@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import 'mic_screen.dart';
+
 class LightControl extends StatefulWidget {
   const LightControl({super.key});
 
@@ -90,7 +92,9 @@ class _LightControlState extends State<LightControl> {
           },
         ),
       ),
-      body: Center(
+      body:Stack(
+        children: [
+      Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -121,6 +125,9 @@ class _LightControlState extends State<LightControl> {
             const SizedBox(height: 20),
           ],
         ),
+      ),
+          const MicButton(),  // This places the mic button at the bottom right
+        ],
       ),
     );
   }
