@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'fan_cotrol_screen.dart';
-import 'light_control.dart';
+import 'fan_control_screen.dart';
+import 'light_control_screen.dart';
 import 'mic_screen.dart'; // Import the mic button widget
 
 class HomeScreen extends StatefulWidget {
@@ -155,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           // Add the mic button to the stack (it will be positioned at the bottom right)
-          const MicButton(),  // This places the mic button at the bottom right
+          // const MicButton(),  // This places the mic button at the bottom right
         ],
       ),
     );
