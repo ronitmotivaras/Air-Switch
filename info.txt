@@ -1,0 +1,21 @@
+http://192.168.152.64/light?state=on
+
+http://192.168.152.64/fan?speed=0
+
+http://192.168.152.64/status/light
+
+http://192.168.152.64/status/fan
+
+Voice Commands :
+
+Light :
+
+-turn on the light
+-turn off the light
+
+Fan :
+
+-turn on the fan
+-increase fan speed (minimum fan speed is 1)
+-decrease fan speed (maximum fan speed is 5)
+-turn off the fan
