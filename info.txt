@@ -1,6 +1,8 @@
-http://192.168.152.64/light?state=on
+http://192.168.152.64/light?state=on or off
 
-http://192.168.152.64/fan?speed=0
+http://192.168.152.64/fan?speed=0 to 255
+
+to check status :
 
 http://192.168.152.64/status/light
 
