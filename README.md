@@ -86,5 +86,3 @@ Install and run the Flutter app on your mobile device.
 
 🤝 Contributions
 Contributions are welcome! Feel free to open an issue or submit a pull request to improve the project.
-
-i want to add this in my git repo but all looks in one line
