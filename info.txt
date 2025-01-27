@@ -2,6 +2,8 @@ http://192.168.152.64/light?state=on or off
 
 http://192.168.152.64/fan?speed=0 to 255
 
+--> URL change as per the arduno code gives.
+
 to check status :
 
 http://192.168.152.64/status/light
@@ -21,3 +23,18 @@ Fan :
 -increase fan speed (minimum fan speed is 1)
 -decrease fan speed (maximum fan speed is 5)
 -turn off the fan
+
+Additional Information :- 1)Both Devices NodeMCU and your Phone Should be connected on same Wifi
+2) no internet connection required
+3) It necessary to power on on the hardware then user can control using the Flutter app
+4) For use voice Assistance need to give permission of voice
+5) Necessary to use voice commands that are use and compiled in nodeMCU
+
+Components : 
+Microcontroller:
+ - NodeMCU (ESP8266)
+ - As per Requirement
+	-Fan
+	-light bulb
+	-Motor Driver
+	-Relay Module
