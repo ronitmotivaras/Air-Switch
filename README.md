@@ -8,7 +8,6 @@ Real-Time Status: Check the current status of lights and fans via the app or end
 Voice Commands: Hands-free operation with integrated voice control.
 Wi-Fi Connectivity: Communicates with the NodeMCU over the same Wi-Fi network.
 User-Friendly Interface: Simple and intuitive Flutter app for control.
-
 🚀 Technology Stack
 Microcontroller: NodeMCU (ESP8266)
 Programming: Arduino (C/C++), Dart
@@ -20,13 +19,11 @@ Relay Module
 L298N Motor Driver
 12V Fan
 AC Light
-
 📚 How It Works
 The NodeMCU microcontroller connects to a Wi-Fi network and controls the appliances.
 The Flutter app sends commands to the NodeMCU via RESTful APIs.
 The fan’s speed is controlled using Pulse Width Modulation (PWM), and the light is toggled using on/off commands.
 Real-time status updates of devices are displayed in the app.
-
 🌐 API Endpoints
 Use the following endpoints to control and monitor your devices:
 
@@ -58,13 +55,11 @@ Voice Assistance Notes:
 
 Grant permissions for voice control in the app.
 Use exact phrases as programmed in the NodeMCU for accurate recognition.
-
 ⚡ Additional Information
 Both the NodeMCU and your phone must be connected to the same Wi-Fi network.
 No internet connection is required for this system to work.
 Ensure the hardware is powered on before using the Flutter app.
 Grant the necessary permissions for voice control functionality.
-
 🔧 Components
 Microcontroller:
 NodeMCU (ESP8266)
@@ -73,15 +68,13 @@ Fan
 Light Bulb
 Motor Driver (L298N)
 Relay Module
-
 ⚠️ Limitations
 Wi-Fi Dependency: Requires connection to the same Wi-Fi network.
 Limited Range: Operates within the Wi-Fi signal range of the NodeMCU.
-No
-
+No User Authentication: Cannot differentiate between users.
 🛠️ Setup Instructions
-Upload the firmware to NodeMCU using the Arduino IDE.
+Upload the firmware to the NodeMCU using the Arduino IDE.
 Install and run the Flutter app on your mobile device.
-
 🤝 Contributions
 Contributions are welcome! Feel free to open an issue or submit a pull request to improve the project.
+
